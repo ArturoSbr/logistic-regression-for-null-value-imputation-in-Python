@@ -41,7 +41,7 @@ def logit_imputer(X, y, random_state=None):
     y_train = t.loc[t['feature'].notna(), 'target']
     clf.fit(X_train, y_train)
     odds = max([t.loc[t['feature'].notna(), 'target'].mean(), 0.001]) / max([1 - t.loc[t['feature'].notna(), 'target'].mean(), 0.001])
-    rep = (np.log(odds) - clf.intercept_[0]) / clf.coef_.item(0), 0.001
+    rep = (np.log(odds) - clf.intercept_[0]) / max([clf.coef_.item(0), 0.001])
     if rep < np.min(X_train):
         rep = np.percentile(X_train, 5)
     elif rep > np.max(X_train):

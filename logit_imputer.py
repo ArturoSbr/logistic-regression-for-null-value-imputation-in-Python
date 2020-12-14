@@ -35,13 +35,14 @@ def logit_imputer(X, y, random_state=None):
     import pandas as pd
     from sklearn.linear_model import LogisticRegression as logit
     t = pd.DataFrame({'target':y,'feature':X})
-    clf = logit(penalty='l2', dual=False, tol=0.0001, C=1, fit_intercept=True, random_state=random_state,
-                solver='lbfgs', max_iter=100)
+    clf = logit(penalty='none', dual=False, tol=0.0001, C=1, fit_intercept=True, random_state=random_state,
+                solver='saga', max_iter=5000)
     X_train = t.loc[t['feature'].notna(), 'feature'].values.reshape(-1, 1)
-    y_train = t.loc[t['feature'].notna(), 'target']
+    y_train = t.loc[t['feature'].notna(), 'target'].values
     clf.fit(X_train, y_train)
-    odds = max([t.loc[t['feature'].notna(), 'target'].mean(), 0.001]) / max([1 - t.loc[t['feature'].notna(), 'target'].mean(), 0.001])
-    rep = (np.log(odds) - clf.intercept_[0]) / max([clf.coef_.item(0), 0.001])
+    p = t.loc[t['feature'].notna(), 'target'].mean()
+    odds = p / max([1 - p, 0.001])
+    rep = (np.log(max([odds, 0.001])) - clf.intercept_[0]) / max([clf.coef_.item(0), 0.001])
     if rep < np.min(X_train):
         rep = np.percentile(X_train, 5)
     elif rep > np.max(X_train):
